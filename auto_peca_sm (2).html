@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTO PEÇA SM - Controle de Estoque</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6f0fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      padding: 20px;
+    }
+    input, select, button {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    .login {
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AUTO PEÇA SM</h1>
+  </header>
+
+  <div class="login" id="login">
+    <h2>Login</h2>
+    <input type="text" id="user" placeholder="Usuário">
+    <input type="password" id="pass" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <div class="container" id="app" style="display:none;">
+    <h2>Cadastro de Peças</h2>
+    <input type="text" id="nome" placeholder="Nome da Peça">
+    <input type="text" id="codigo" placeholder="Código da Peça">
+    <input type="number" id="quantidade" placeholder="Quantidade">
+    <input type="number" id="preco" placeholder="Preço">
+    <input type="text" id="fornecedor" placeholder="Fornecedor">
+    <button onclick="adicionarPeca()">Adicionar Peça</button>
+
+    <h2>Saída de Peças</h2>
+    <input type="text" id="codigoSaida" placeholder="Código da Peça">
+    <input type="text" id="quem" placeholder="Quem retirou">
+    <button onclick="registrarSaida()">Registrar Saída</button>
+
+    <h2>Estoque</h2>
+    <table id="estoque">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Código</th>
+          <th>Qtd</th>
+          <th>Preço</th>
+          <th>Fornecedor</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>Top 5 Peças Mais Usadas</h2>
+    <ul id="top5"></ul>
+  </div>
+
+  <script>
+    const user = 'gabriel';
+    const pass = 'JUBILEU00';
+    const estoque = [];
+    const saidas = {};
+
+    function login() {
+      const u = document.getElementById('user').value;
+      const p = document.getElementById('pass').value;
+      if(u === user && p === pass){
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+      } else {
+        alert('Usuário ou senha incorretos');
+      }
+    }
+
+    function adicionarPeca(){
+      const nome = document.getElementById('nome').value;
+      const codigo = document.getElementById('codigo').value;
+      const quantidade = parseInt(document.getElementById('quantidade').value);
+      const preco = parseFloat(document.getElementById('preco').value);
+      const fornecedor = document.getElementById('fornecedor').value;
+      estoque.push({nome, codigo, quantidade, preco, fornecedor});
+      atualizarEstoque();
+    }
+
+    function atualizarEstoque(){
+      const tbody = document.querySelector('#estoque tbody');
+      tbody.innerHTML = '';
+      estoque.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.nome}</td><td>${p.codigo}</td><td>${p.quantidade}</td><td>${p.preco}</td><td>${p.fornecedor}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function registrarSaida(){
+      const codigo = document.getElementById('codigoSaida').value;
+      const quem = document.getElementById('quem').value;
+      const peca = estoque.find(p => p.codigo === codigo);
+      if(peca && peca.quantidade > 0){
+        peca.quantidade--;
+        if(!saidas[codigo]){
+          saidas[codigo] = {quantidade:0, nome:peca.nome};
+        }
+        saidas[codigo].quantidade++;
+        atualizarEstoque();
+        atualizarTop5();
+        alert(`Saída registrada para ${quem}`);
+      } else {
+        alert('Peça não encontrada ou sem estoque');
+      }
+    }
+
+    function atualizarTop5(){
+      const top = Object.entries(saidas).sort((a,b)=>b[1].quantidade - a[1].quantidade).slice(0,5);
+      const ul = document.getElementById('top5');
+      ul.innerHTML = '';
+      top.forEach(([codigo, info]) => {
+        const li = document.createElement('li');
+        li.textContent = `${info.nome} - ${info.quantidade} saídas`;
+        ul.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
